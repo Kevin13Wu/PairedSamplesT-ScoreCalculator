@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Paired Samples T-Score Calculator</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      $("#calculate").click(function() {
+        var preValues = [];
+        var postValues = [];
+
+        // Get pre-test values
+        var preInput = $("#preInput").val();
+        var preArray = preInput.split(",");
+        for (var i = 0; i < preArray.length; i++) {
+          preValues.push(parseFloat(preArray[i].trim()));
+        }
+
+        // Get post-test values
+        var postInput = $("#postInput").val();
+        var postArray = postInput.split(",");
+        for (var j = 0; j < postArray.length; j++) {
+          postValues.push(parseFloat(postArray[j].trim()));
+        }
+
+        // Calculate the differences between pre and post values
+        var differences = [];
+        for (var k = 0; k < preValues.length; k++) {
+          differences.push(postValues[k] - preValues[k]);
+        }
+
+        // Calculate mean difference
+        var meanDifference = differences.reduce((a, b) => a + b) / differences.length;
+
+        // Calculate standard deviation of differences
+        //var squaredDifferences = differences.map(diff => Math.pow(diff - meanDifference, 2));
+        //var variance = squaredDifferences.reduce((a, b) => a + b) / squaredDifferences.length;
+        //var stdDev = Math.sqrt(variance);
+
+        // Calculate t-score
+        //var tScore = meanDifference / (stdDev / Math.sqrt(differences.length));
+
+        var sumOfDifference = 0;
+        var sumOfDSquared = 0;
+
+        // Display user input in table
+        var table = "<tr><th>Subject</th><th>X Value</th><th>Y Value</th><th><p>Difference</p>(Y minus X)</th><th>D minus M<sub>Difference</sub></th><th>(D minus M<sub>Difference</sub>)<sup>2</sup></th></tr>";
+        for (var m = 0; m < preValues.length || m < postValues.length; m++) {
+          var preValue = m < preValues.length ? preValues[m] : "";
+          var postValue = m < postValues.length ? postValues[m] : "";
+          var difference = m < postValues.length ? differences[m].toFixed(2) : "";
+          var d = m < postValues.length ? (differences[m] - meanDifference).toFixed(2) : "";
+          table += "<tr><td>" + (m + 1) + "</td><td>" + preValue + "</td><td>" + postValue + "</td><td>" + difference + "</td><td>" + d + "</td><td>" + ((differences[m] - meanDifference)*(differences[m] - meanDifference)).toFixed(2) + "</td></tr>";
+          sumOfDifference += differences[m];
+          sumOfDSquared += ((differences[m] - meanDifference)*(differences[m] - meanDifference));
+        }
+        table += "<tr><td>--</td><td>--</td><td>--</td><td>" + sumOfDifference.toFixed(2) + "</td><td>--</td><td>" + sumOfDSquared.toFixed(2) + "</td></tr>";
+        $("#inputTable").html(table);
+        var s = Math.sqrt(sumOfDSquared / (preValues.length - 1));
+        var standardError = s / (Math.sqrt(preValues.length));
+        var t = (meanDifference) / standardError.toFixed(3);
+        $("#ValueOfN").text(preValues.length);
+        $("#ValueOfMDifference").text(meanDifference.toFixed(2));
+        $("#ValueOfS").text(s.toFixed(2));
+        $("#ValueOfSM").text(standardError.toFixed(3));
+        $("#result").text("(" + meanDifference.toFixed(2) + " - 0) /" + standardError.toFixed(3) + " = " + t.toFixed(2));
+      });
+    });
+  </script>
+</head>
+<body>
+  <h1>Paired Samples T-Score Calculator</h1>
+
+  <h2>X Values (separated by commas):</h2>
+  <input type="text" id="preInput" placeholder="Enter X values"><br>
+
+  <h2>Y Values (separated by commas):</h2>
+  <input type="text" id="postInput" placeholder="Enter Y values"><br><br>
+
+  <button id="calculate">Calculate</button>
+
+  <table id="inputTable" border="1"></table>
+
+  <h3>Number of participants: </h3>
+  <p>N = <span id="ValueOfN"></span></p>
+  <h3>Mean of the differences between scores for each participant: </h3>
+  <p>M<sub>Difference</sub> = <span id="ValueOfMDifference"></span></p>
+  <h3>An estimation of the population standard deviation: </h3>
+  <p>s = <math><msqrt><mi>(&#931;(D - M)^2)/(N - 1)</mi></msqrt></math> = <span id="ValueOfS"></span></p>
+  <h3>Standard Error: </h3>
+  <p>S<sub>M</sub> = s / <math><msqrt><mi>N</mi></msqrt></math> = <span id="ValueOfSM"></span></p>
+  <h3>Test statistic (t-score): </h3>
+  <p>t = (M<sub>Difference</sub> - &micro;M) / S<sub>M</sub> = <span id="result"></span></p>
+</body>
+</html>
